@@ -124,14 +124,14 @@ class PerkonsInfoCam:
 
         # Formatando colunas
         self.table.column('#0', width=0, stretch='no')
-        self.table.column('PONTO', anchor='w', width=150)
-        self.table.column('NOME DA CÂMERA', anchor='w', width=200)
-        self.table.column('INFORMAÇÃO', anchor='w', width=150)
+        self.table.column('PONTO', width=150)
+        self.table.column('NOME DA CÂMERA', width=200)
+        self.table.column('INFORMAÇÃO', anchor='w')
 
         # Criando Cabeçalhos
-        self.table.heading('#0', text='', anchor='w')
-        self.table.heading('PONTO', text='PONTO', anchor='w')
-        self.table.heading('NOME DA CÂMERA', text='NOME DA CÂMERA', anchor='w')
+        self.table.heading('#0', text='')
+        self.table.heading('PONTO', text='PONTO')
+        self.table.heading('NOME DA CÂMERA', text='NOME DA CÂMERA')
         self.table.heading('INFORMAÇÃO', text='INFORMAÇÃO', anchor='w')
 
         # Configurando ScrollBar
@@ -334,7 +334,11 @@ class PerkonsInfoCam:
     def execute_camera_action(self, action_function):
         """Executa uma ação específica para todas as câmeras do ponto selecionado."""
         try:
-            # self.text_area.delete("1.0", END)
+            if len(self.table.get_children())>0:
+                print("XXXXXXXX")
+                for row in self.table.get_children():
+                    self.table.delete(row)
+
             ponto = self.combo_pontos.get()
             camera_selecionada = self.combo_cameras.get()
 
@@ -346,15 +350,18 @@ class PerkonsInfoCam:
                         self.table.insert(parent='',index='end',iid=indice,text='', values=(camera[1],camera[3],response))
             else:
                 camera = Database().selecionar_camera(camera_selecionada)
+                print(camera[0][0])
                 response = action_function(camera[0][4], camera[0][8], camera[0][0])
                 if response:
-                    self.table.insert(parent='',index='end',iid=0,text='', values=(camera[1],camera[3],response))
+                    self.table.insert(parent='',index='end',iid=0,text='', values=(camera[0][1],camera[0][3],response))
         except IndexError as e:
             messagebox.showinfo(
                 "Informação", f"Favor selecionar uma camera para realizar essa ação {e.__str__()}"
             )
 
     def execute_all_action(self, action_function):
+        for row in self.table.get_children():
+            self.table.delete(row)
         cameras = Database().selecionar_todas_cameras()
         for indice, camera in enumerate(cameras,0):
             response = action_function(camera[4], camera[8], camera[0])
@@ -367,7 +374,6 @@ class PerkonsInfoCam:
 
     def executa_visualizar_snapshot(self):
         cameras = Database()
-        self.text_area.delete("1.0", END)
         camera_selecionada = self.combo_cameras.get()
 
         if camera_selecionada != "Todas as Câmeras":
