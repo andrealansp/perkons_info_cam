@@ -1,18 +1,21 @@
-from pprint import pprint
+import os
 import time
 import traceback
 from venv import logger
 import psycopg
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class Database:
     def __init__(self):
         self.__con = {
-            "dbname": "bd_regional",
-            "user": "perkons",
-            "password": "perkons6340",
-            "host": "10.1.5.158",  # Change if your database is hosted elsewhere
-            "port": 5432,  # Default PostgreSQL port
+            "dbname": os.getenv("DBNAME"),
+            "user": os.getenv("USER"),
+            "password": os.getenv("PASSWORD"),
+            "host": os.getenv("HOST"),  # Change if your database is hosted elsewhere
+            "port": os.getenv("PORT"),  # Default PostgreSQL port
         }
 
     @property
@@ -202,19 +205,8 @@ class Database:
         except Exception as e:
             logger.error("Unexpected error:", e, traceback.format_exc())
 
-
-if __name__ == "__main__":
-    banco_dados = Database()
-    # banco_dados.criar_tabela()
-    # ponto = {
-    #     "ponto": "P0001",
-    #     "regiao": "Metropolitana",
-    #     "nome_ponto": "P0001-PCL-PK-GRP",
-    #     "ip": "45.182.66.1",
-    #     "nome_camera": "GRP-P0001-LPR2-SAIDA-ES060-KM29N",
-    #     "porta": "9051",
-    # }
-    # banco_dados.inserir_camera(ponto)
-    # # banco_dados.pegar_todas_cameras()
-    cameras = banco_dados.selecionar_ponto("P0002")
-    pprint(cameras)
+    def selecionar_ip_roteadores(self):
+        with psycopg.connect(**self.con) as con:
+            with con.cursor() as cur:
+                cur.execute("""select distinct(ponto), ip, regiao, nome_ponto from cameras""")
+                return cur.fetchall()
